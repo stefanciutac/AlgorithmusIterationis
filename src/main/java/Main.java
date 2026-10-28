@@ -19,30 +19,23 @@ public class Main
     public static void displayCommands()
     {
         System.out.println("[Database Commands]\n" +
-                ":q\tquit program or cancel current review/modification\n" +
-                ":r\treview queue\n" +
-                ":a\tadd error to database" +
-                ":h\tdisplay this list\n" +
-                ":ddb\tdisplay the database\n" +
-                "\n[Queue-Buffer]\n" +
-                "dq\tdisplay the queue\n" +
-                "db\tdisplay the buffer\n" +
-                "fn <tag><tag>...<tag>\tfilter buffer by tag using boolean AND\n" +
-                "fu <tag><tag>...<tag>\tfilter buffer by tag using boolean OR\n" +
-                "\nu\tqueue = (queue) union (buffer)\n" +
-                "n\tqueue = (queue) intersection (buffer)\n" +
-                "ld\toverwrites queue with buffer\n" +
-                "\nm <multiplier><tag><tag>...<tag>\tset the urgency multiplier for given tags\n" +
-                "gf <review duration>\tuses an algorithm to greedy-filter database" +
-                "rm\tremove errors in buffer from database" +
-                "rst\treset buffer to entire database\n");
-    }
-
-    public static String promptCommand()
-    {
-        Scanner sc = new Scanner(System.in);
-        System.out.print("[cmd]: ");
-        return sc.next();
+                ":q\tquit program or cancel current review/modification\n" +  // works
+                ":r\treview queue\n" +  // works
+                ":a\tadd error to database\n" +  // works
+                ":h\tdisplay this list\n" +  // works
+                ":ldb\tdisplay the database\n" +  // works
+                "\n[Queue-Buffer]\n" +  // works
+                "lq\tdisplay the queue\n" +  // works
+                "lb\tdisplay the buffer\n" +  // works
+                "fn <tag><tag>...<tag>\tfilter buffer by tag using boolean AND\n" +  // works
+                "fu <tag><tag>...<tag>\tfilter buffer by tag using boolean OR\n" +  // works
+                "\nu\tqueue = (queue) union (buffer)\n" +  // works
+                "n\tqueue = (queue) intersection (buffer)\n" +  // works
+                "ld\toverwrites queue with buffer\n" +  // works
+                "\nm <multiplier><tag><tag>...<tag>\tset the urgency multiplier for given tags\n" +  // untested
+                "gf <review duration>\tuses an algorithm to greedy-filter database\n" +  // works
+                "rm\tremove errors in buffer from database\n" +  // untested
+                "rst\treset buffer to entire database\n");  // works
     }
 
     public static void displayList(ArrayList<Error> list)
@@ -57,69 +50,71 @@ public class Main
     {
         System.out.println("[Filtering OR]");
 
-        // remove all error objects that do not match any of the tags
+        ArrayList<Error> newList = new ArrayList<>();
+
+        // add all error objects that match at least one tag
         for (Error error: list)
         {
-            boolean matchesNoTags = true;
-
-            // iterate through tags
             for (String tag: tagList)
             {
                 if (error.tags.contains(tag))
                 {
-                    matchesNoTags = false;
+                    newList.add(error);
                     break;
                 }
             }
-
-            // remove object if it does not match any of the tags
-            if (matchesNoTags)
-            {
-                list.remove(error);
-            }
         }
 
-        return list;
+        return newList;
     }
 
     public static ArrayList<Error> filterAnd(ArrayList<Error> list, ArrayList<String> tagList)
     {
         System.out.println("[Filtering AND]");
 
-        // remove all error objects that do not match all of the tags
+        ArrayList<Error> newList = new ArrayList<>();
+
+        // add only error objects that match all the tags
         for (Error error: list)
         {
+            boolean valid = true;
             for (String tag: tagList)
             {
                 if (!error.tags.contains(tag))
                 {
-                    list.remove(error);
+                    valid = false;
                     break;
                 }
             }
+
+            if (valid)
+            {
+                newList.add(error);
+            }
         }
 
-        return list;
+        return newList;
     }
 
     // returns empty list if no args provided, handling the edge case of filtering by no tags
-    public static ArrayList<String> pacmanArgs()
+    public static ArrayList<String> pacmanArgs(Scanner sc)
     {
-        Scanner sc = new Scanner(System.in);
         ArrayList<String> argsList = new ArrayList<String>();
 
-        while (sc.hasNext())
+        String args = sc.nextLine();
+
+        Scanner stringSc = new Scanner(args);
+
+        while (stringSc.hasNext())
         {
-            argsList.add(sc.next());
+            argsList.add(stringSc.next());
         }
 
         return argsList;
     }
 
-    public static String getNext()
+    public static String getNext(Scanner sc)
     {
-        Scanner sc = new Scanner(System.in);
-
         try
         {
             return sc.next();
@@ -135,28 +130,41 @@ public class Main
     {
         ArrayList<Error> union = new ArrayList<>();
 
-        // add duplicates once
+        // add duplicates and A-unique
         for (Error errorA: listA)
         {
+            boolean foundMatch = false;
             for (Error errorB: listB)
             {
                 if (errorA.equals(errorB))
                 {
                     union.add(errorA);
-                    listA.remove(errorA);
-                    listB.remove(errorB);
+                    foundMatch = true;
                 }
             }
+
+            if (!foundMatch)
+            {
+                union.add(errorA);
+            }
         }
-        
-        // add unique elements
-        for (Error error: listA)
+
+        // add B-unique
+        for (Error errorB: listB)
         {
-            union.add(error);
-        }
-        for (Error error: listB)
-        {
-            union.add(error);
+            boolean foundMatch = false;
+            for (Error errorA: listA)
+            {
+                if (errorA.equals(errorB))
+                {
+                    foundMatch = true;
+                }
+            }
+
+            if (!foundMatch)
+            {
+                union.add(errorB);
+            }
         }
 
         return union;
@@ -173,8 +181,7 @@ public class Main
                 if (errorA.equals(errorB))
                 {
                     intersection.add(errorA);
-                    listA.remove(errorA);
-                    listB.remove(errorB);
+                    break;
                 }
             }
         }
@@ -200,10 +207,10 @@ public class Main
     }
 
     // recursive function for taking in a bounded index or :q
-    public static String validateNum(int max, String message)
+    public static String validateNum(int max, String message, Scanner sc)
     {
         System.out.print(message);
-        String choice = getNext();
+        String choice = getNext(sc);
 
         if (!choice.equals(":q"))
         {
@@ -215,64 +222,61 @@ public class Main
             catch (NumberFormatException e)
             {
                 System.out.println("Exception: Must be an integer value.");
-                choice = validateNum(max, message);
+                choice = validateNum(max, message, sc);
             }
 
-            index = Integer.parseInt(choice);
-
-            if (index > max)
+            if (!choice.equals(":q"))
             {
-                System.out.println("Exception: Must not exceed " + max + ".");
-                choice = validateNum(max, message);
+                index = Integer.parseInt(choice);
+
+                if (index > max)
+                {
+                    System.out.println("Exception: Must not exceed " + max + ".");
+                    choice = validateNum(max, message, sc);
+                }
             }
         }
 
         return choice;
     }
 
-    // relies on assumption that throwing an exception exits the function
-    public static Review reviewError(Error error) throws QuitException
+    public static Review reviewError(Error error, Scanner sc) throws QuitException
     {
-        Scanner sc = new Scanner(System.in);
         Review review = new Review();
 
-        System.out.println("[Review started]");
+        System.out.println("\n[Review started]");
         System.out.println("[Title]: " + error.getTitle());
         System.out.println("[Pointer]: " + error.getPointer());
 
-        System.out.print("[Press enter to continue]: ");
+        System.out.print("[Enter anything to continue]: ");
         if (sc.next().equals(":q"))
         {
             throw new QuitException();
         }
 
         System.out.println("[Error]: " + error.getDescription());
-        if (sc.next().equals(":q"))
+        String input = validateNum(100, "[Enter confidence]: ", sc);
+        if (input.equals(":q"))
         {
             throw new QuitException();
         }
         else
         {
-            String input = validateNum(100, "[Enter confidence: ]");
-            if (input.equals(":q"))
-            {
-                throw new QuitException();
-            }
-            else
-            {
-                review.setConfidence(Integer.parseInt(input));
-            }
+            review.setConfidence(Integer.parseInt(input));
         }
+
+        System.out.println("[Review complete]");
 
         return review;
     }
 
-    public static ArrayList<Error> reviewQueue(ArrayList<Error> queue)
+    public static ArrayList<Error> reviewQueue(ArrayList<Error> queue, Scanner sc)
     {
         System.out.println("\n[Queue]");
+
         displayList(queue);
 
-        String choice = validateNum(queue.size(), "[Enter no. of item to review]: ");
+        String choice = validateNum(queue.size(), "\n[Enter no. of item to review]: ", sc);
 
         while (!choice.equals(":q"))
         {
@@ -280,15 +284,16 @@ public class Main
 
             try
             {
-                queue.get(index).addReview(reviewError(queue.get(index)));
+                queue.get(index).addReview(reviewError(queue.get(index), sc));
             }
             catch (QuitException e)
             {
                 System.out.println("[Review cancelled]");
             }
 
-            choice = validateNum(queue.size(), "[Enter no. of item to review]: ");
+            choice = validateNum(queue.size(), "[Enter no. of item to review]: ", sc);
         }
+        System.out.println("[Review session ended]");
 
         return queue;
     }
@@ -299,7 +304,7 @@ public class Main
 
         // get title
         System.out.print("[Enter title]: ");
-        sc.nextLine();  // clear buffer
+        //sc.nextLine();  // clear buffer
         String title = sc.nextLine();
 
         if (title.equals(":q"))
@@ -325,8 +330,17 @@ public class Main
             throw new QuitException();
         }
 
+        // populate initial "review"
+        Review review = new Review();
+        String initialConfidence = validateNum(100, "[Enter confidence]: ", sc);
+        if (initialConfidence.equals(":q"))
+        {
+            throw new QuitException();
+        }
+        review.setConfidence(Double.parseDouble(initialConfidence));
+
         // get estimatedDuration
-        String estimatedDurationString = validateNum(600, "[Enter estimated duration/mins]: ");
+        String estimatedDurationString = validateNum(600, "[Enter estimated duration/mins]: ", sc);
 
         if (estimatedDurationString.equals(":q"))
         {
@@ -337,6 +351,7 @@ public class Main
 
 
         // get tags
+        sc.nextLine();  // clear buffer
         System.out.print("[Enter tags]: ");
         String tags = sc.nextLine();
 
@@ -346,7 +361,9 @@ public class Main
         }
 
         // construct and return new Error object
-        return new Error(title, description, pointer, tags, estimatedDuration);
+        Error error = new Error(title, description, pointer, tags, estimatedDuration);
+        error.addReview(review);
+        return error;
     }
 
     public static ArrayList<Error> insertionSort(ArrayList<Error> list)
@@ -388,6 +405,33 @@ public class Main
         return queue;
     }
 
+    // temporary: for testing purposes
+    public static ArrayList<Error> getTestErrors(int count)
+    {
+        ArrayList<Error> errors = new ArrayList<>();
+
+        for (int i = 1; i <= count; i ++)
+        {
+            String title = "error" + i;
+            String description = "you made mistake no." + i;
+            String pointer = "textbook chapter " + i;
+            int estimatedDuration = i;
+            String tags = "";
+            for (int j = 1; j < i; j ++)
+            {
+                tags += "t" + j + ", ";
+            }
+            tags += "t" + i;
+
+            Error error = new Error(title, description, pointer, tags, estimatedDuration);
+            error.addReview(new Review(i));
+
+            errors.add(error);
+        }
+
+        return errors;
+    }
+
     public static void quit()
     {
         System.out.println("AlgorithmusIterationis exited.");
@@ -395,9 +439,9 @@ public class Main
 
     public static void main()
     {
-        ArrayList<Error> database = new ArrayList<>();  // construct using json file parser
+        ArrayList<Error> database = getTestErrors(5);  // construct using json file parser
         ArrayList<Error> queue = new ArrayList<>();
-        ArrayList<Error> buffer = database;
+        ArrayList<Error> buffer = new ArrayList<>(database);
 
         // display welcome screen
         displayBanner();
@@ -405,16 +449,19 @@ public class Main
 
 
         // main command loop
+        Scanner sc = new Scanner(System.in);
         String command;
 
         do
         {
-            command = promptCommand();
+            System.out.print("\n[cmd]: ");
+            command = sc.next();
 
-            // check for database commands
+
+            // check for permanent or program commands
             if (command.equals(":r"))
             {
-                queue = reviewQueue(queue);
+                queue = reviewQueue(queue, sc);
             }
             else if (command.equals(":h"))
             {
@@ -431,27 +478,36 @@ public class Main
                     System.out.println("[Add error operation cancelled]");
                 }
             }
-            else if (command.equals(":ddb"))
+            else if (command.equals(":q"))
+            {
+                System.out.print("[Exit program? y/N]: ");
+                String choice = sc.next();
+                if (!choice.equals("y"))
+                {
+                    command = "";
+                }
+            }
+            // check for session commands
+            else if (command.equals("ls"))
             {
                 displayList(database);
             }
-            // check for queue-buffer commands
-            else if (command.equals("dq"))
+            else if (command.equals("lq"))
             {
                 displayList(queue);
             }
-            else if (command.equals("db"))
+            else if (command.equals("lb"))
             {
                 displayList(buffer);
             }
             else if (command.equals("fn"))
             {
-                ArrayList<String> tagList = pacmanArgs();
+                ArrayList<String> tagList = pacmanArgs(sc);
                 buffer = filterAnd(buffer, tagList);
             }
             else if (command.equals("fu"))
             {
-                ArrayList<String> tagList = pacmanArgs();
+                ArrayList<String> tagList = pacmanArgs(sc);
                 buffer = filterOr(buffer, tagList);
             }
             else if (command.equals("u"))
@@ -473,7 +529,7 @@ public class Main
 
                 try
                 {
-                    multiplier = Double.parseDouble(getNext());
+                    multiplier = Double.parseDouble(getNext(sc));
                 }
                 catch (NumberFormatException e)
                 {
@@ -488,14 +544,14 @@ public class Main
 
                 if (isValidMultiplier)
                 {
-                    ArrayList<String> tagList = pacmanArgs();
+                    ArrayList<String> tagList = pacmanArgs(sc);
                     buffer = applyMultiplier(buffer, multiplier, tagList);
                 }
 
             }
             else if (command.equals("gf"))
             {
-                int minutesFree = Integer.parseInt(validateNum(1440, "[Enter review duration/mins]: "));
+                int minutesFree = Integer.parseInt(validateNum(1440, "[Enter review duration/mins]: ", sc));
 
                 buffer = greedyFill(buffer, minutesFree);
             }

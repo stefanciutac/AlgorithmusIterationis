@@ -1,13 +1,14 @@
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class Error
 {
     private ArrayList<Review> reviews = new ArrayList<>();
-    private int currentConfidence = 50;
+    private double currentConfidence = 50;
     private int estimatedDuration; // in minutes
     private double urgencyMultiplier = 1.0;
-    private String dateCreated;
+    final private String dateCreated;
 
     private String title = "";
     private String description = "";
@@ -22,12 +23,14 @@ public class Error
         description = d;
         pointer = p;
         estimatedDuration = eD;
-        tags = tg;
+        dateCreated = LocalDateTime.now().toString();
+        tags = dateCreated + tg;
     }
 
     public Error()
     {
         dateCreated = LocalDateTime.now().toString();
+        tags = dateCreated;
     }
 
     // getters and setters
@@ -69,7 +72,43 @@ public class Error
     // other methods
     public double calculateScore()
     {
-        return (100.0 - (double)currentConfidence) * urgencyMultiplier;
+        updateConfidence();
+        return (100.0 - currentConfidence) * urgencyMultiplier;
+    }
+
+    private double calculateHoursPassed(LocalDateTime timeA, LocalDateTime timeB)
+    {
+        return Duration.between(timeA, timeB).toHours();
+    }
+
+    private double calculateDecayPerHour()
+    {
+        double totalHours = 0;
+        double totalDecay = 0;
+
+        for (int i = 1; i < reviews.size(); i ++)
+        {
+            totalHours += calculateHoursPassed(LocalDateTime.parse(reviews.get(i - 1).getDate()),
+                    LocalDateTime.parse(reviews.get(i).getDate()));
+            totalDecay += reviews.get(i - 1).getConfidence() - reviews.get(i).getConfidence();
+        }
+
+        // avoid division by 0 exception
+        if (totalHours == 0)
+        {
+            totalDecay = 50.0;
+            totalHours = 24.0;
+        }
+
+        return totalDecay / totalHours;
+    }
+
+    public void updateConfidence()
+    {
+        double timePassed = calculateHoursPassed(LocalDateTime.parse(reviews.getLast().getDate()), LocalDateTime.now());
+        double halfLife = Math.clamp(50.0 / calculateDecayPerHour(), 1.0, 720.0);
+
+        currentConfidence = 100.0 * Math.pow(0.5, (timePassed / halfLife));
     }
 
     // error objects are considered equal if they were created at the same time

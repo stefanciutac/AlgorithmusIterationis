@@ -4,7 +4,7 @@ public class Review
 {
     // private member variables
     final private String date;
-    private int confidence;
+    private double confidence;
 
     // constructors
     public Review(int c)
@@ -24,14 +24,14 @@ public class Review
         return date;
     }
 
-    public int getConfidence()
+    public double getConfidence()
     {
         return confidence;
     }
 
     // setters
-    public void setConfidence(int c)
+    public void setConfidence(double c)
     {
-        confidence = Math.clamp(c, 0, 100);
+        confidence = Math.clamp(c, 1.0, 100.0);
     }
 }
