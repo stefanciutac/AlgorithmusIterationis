@@ -24,7 +24,7 @@ public class Error
         pointer = p;
         estimatedDuration = eD;
         dateCreated = LocalDateTime.now().toString();
-        tags = dateCreated + tg;
+        tags = dateCreated + ", " + tg;
     }
 
     public Error()
@@ -37,6 +37,7 @@ public class Error
     public void addReview(Review review)
     {
         reviews.add(review);
+        currentConfidence = review.getConfidence();
     }
 
     public void setUrgencyMultiplier(double multiplier)
@@ -67,6 +68,11 @@ public class Error
     public int getEstimatedDuration()
     {
         return estimatedDuration;
+    }
+
+    public double getUrgencyMultiplier()
+    {
+        return urgencyMultiplier;
     }
 
     // other methods
@@ -103,12 +109,20 @@ public class Error
         return totalDecay / totalHours;
     }
 
-    public void updateConfidence()
+    private void updateConfidence()
     {
         double timePassed = calculateHoursPassed(LocalDateTime.parse(reviews.getLast().getDate()), LocalDateTime.now());
         double halfLife = Math.clamp(50.0 / calculateDecayPerHour(), 1.0, 720.0);
 
-        currentConfidence = 100.0 * Math.pow(0.5, (timePassed / halfLife));
+        currentConfidence = currentConfidence * Math.pow(0.5, (timePassed / halfLife));
+    }
+
+    public double returnNewConfidence()
+    {
+        double timePassed = calculateHoursPassed(LocalDateTime.parse(reviews.getLast().getDate()), LocalDateTime.now());
+        double halfLife = Math.clamp(50.0 / calculateDecayPerHour(), 1.0, 720.0);
+
+        return currentConfidence * Math.pow(0.5, (timePassed / halfLife));
     }
 
     // error objects are considered equal if they were created at the same time

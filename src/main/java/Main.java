@@ -189,19 +189,14 @@ public class Main
         return intersection;
     }
 
-    public static ArrayList<Error> applyMultiplier(ArrayList<Error> list, double multiplier, ArrayList<String> tagList)
+    public static ArrayList<Error> applyMultiplier(ArrayList<Error> list, double multiplier)
     {
         // if any of the tags in tagList are present, update the multiplier
         for (Error error: list)
         {
-            for (String tag: tagList)
-            {
-                if (error.tags.contains(tag))
-                {
-                    error.setUrgencyMultiplier(multiplier);
-                    break;
-                }
-            }
+            error.setUrgencyMultiplier(multiplier);
+            System.out.println("[Added multiplier: " + error.getUrgencyMultiplier() + "]\t" + error.getTitle());
+            break;
         }
         return list;
     }
@@ -424,7 +419,7 @@ public class Main
             tags += "t" + i;
 
             Error error = new Error(title, description, pointer, tags, estimatedDuration);
-            error.addReview(new Review(i));
+            error.addReview(new Review(count - i));
 
             errors.add(error);
         }
@@ -544,8 +539,7 @@ public class Main
 
                 if (isValidMultiplier)
                 {
-                    ArrayList<String> tagList = pacmanArgs(sc);
-                    buffer = applyMultiplier(buffer, multiplier, tagList);
+                    buffer = applyMultiplier(buffer, multiplier);
                 }
 
             }
