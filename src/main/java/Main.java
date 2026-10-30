@@ -198,12 +198,10 @@ public class Main
 
     public static ArrayList<Error> applyMultiplier(ArrayList<Error> list, double multiplier)
     {
-        // if any of the tags in tagList are present, update the multiplier
         for (Error error: list)
         {
             error.setUrgencyMultiplier(multiplier);
             System.out.println("[Added multiplier: " + error.getUrgencyMultiplier() + "]\t" + error.getTitle());
-            break;
         }
         return list;
     }
