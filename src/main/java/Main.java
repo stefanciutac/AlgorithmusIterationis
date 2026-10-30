@@ -209,7 +209,7 @@ public class Main
     }
 
     // recursive function for taking in a bounded index or :q
-    public static String validateNum(int max, String message, Scanner sc)
+    public static String validateNum(int min, int max, String message, Scanner sc)
     {
         System.out.print(message);
         String choice = getNext(sc);
@@ -224,7 +224,7 @@ public class Main
             catch (NumberFormatException e)
             {
                 System.out.println("Exception: Must be an integer value.");
-                choice = validateNum(max, message, sc);
+                choice = validateNum(min, max, message, sc);
             }
 
             if (!choice.equals(":q"))
@@ -234,7 +234,12 @@ public class Main
                 if (index > max)
                 {
                     System.out.println("Exception: Must not exceed " + max + ".");
-                    choice = validateNum(max, message, sc);
+                    choice = validateNum(min, max, message, sc);
+                }
+                else if (index < min)
+                {
+                    System.out.println("Exception: Must not be less than " + min + ".");
+                    choice = validateNum(min, max, message, sc);
                 }
             }
         }
@@ -257,7 +262,7 @@ public class Main
         }
 
         System.out.println("[Error]: " + error.getDescription());
-        String input = validateNum(100, "[Enter confidence]: ", sc);
+        String input = validateNum(0, 100, "[Enter confidence]: ", sc);
         if (input.equals(":q"))
         {
             throw new QuitException();
@@ -291,7 +296,7 @@ public class Main
 
         displayList(queue);
 
-        String choice = validateNum(queue.size(), "\n[Enter no. of item to review]: ", sc);
+        String choice = validateNum(0, queue.size(), "\n[Enter no. of item to review]: ", sc);
 
         while (!choice.equals(":q"))
         {
@@ -308,7 +313,7 @@ public class Main
                 System.out.println("[Review cancelled]");
             }
 
-            choice = validateNum(queue.size(), "[Enter no. of item to review]: ", sc);
+            choice = validateNum(0, queue.size(), "[Enter no. of item to review]: ", sc);
         }
         System.out.println("[Review session ended]");
 
@@ -349,7 +354,7 @@ public class Main
 
         // populate initial "review"
         Review review = new Review();
-        String initialConfidence = validateNum(100, "[Enter confidence]: ", sc);
+        String initialConfidence = validateNum(0, 100, "[Enter confidence]: ", sc);
         if (initialConfidence.equals(":q"))
         {
             throw new QuitException();
@@ -357,7 +362,7 @@ public class Main
         review.setConfidence(Double.parseDouble(initialConfidence));
 
         // get estimatedDuration
-        String estimatedDurationString = validateNum(600, "[Enter estimated duration/mins]: ", sc);
+        String estimatedDurationString = validateNum(0, 600, "[Enter estimated duration/mins]: ", sc);
 
         if (estimatedDurationString.equals(":q"))
         {
@@ -671,7 +676,7 @@ public class Main
                 }
                 else if (command.equals("gf"))
                 {
-                    int minutesFree = Integer.parseInt(validateNum(1440, "[Enter review duration/mins]: ", sc));
+                    int minutesFree = Integer.parseInt(validateNum(0, 1440, "[Enter review duration/mins]: ", sc));
 
                     buffer = greedyFill(buffer, minutesFree);
                 }
