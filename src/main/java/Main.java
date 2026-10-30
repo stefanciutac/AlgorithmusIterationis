@@ -506,6 +506,32 @@ public class Main
         return database;
     }
 
+    public static ArrayList<Error> removeError(ArrayList<Error> buffer, ArrayList<Error> database)
+    {
+        ArrayList<Error> modifiedList = new ArrayList<>();
+        for (Error errorDB: database)
+        {
+            boolean canStay = true;
+            for (Error errorB: buffer)
+            {
+                if (errorDB.equals(errorB))
+                {
+                    canStay = false;
+                }
+            }
+
+            if (canStay)
+            {
+                modifiedList.add(errorDB);
+            }
+            else
+            {
+                System.out.println("[" + errorDB.getTitle() + " removed]");
+            }
+        }
+        return modifiedList;
+    }
+
     public static ArrayList<Error> resetMultipliers(ArrayList<Error> database)
     {
         for (Error error: database)
@@ -692,18 +718,7 @@ public class Main
                 }
                 else if (command.equals("rm"))
                 {
-                    for (Error errorB: buffer)
-                    {
-                        for (Error errorDB: database)
-                        {
-                            if (errorB.equals(errorDB))
-                            {
-                                database.remove(errorDB);
-                                System.out.println("[" + errorDB.getTitle() + " removed]");
-                            }
-                        }
-                    }
-
+                    database = removeError(buffer, database);
                     buffer.clear();
                 }
                 else
