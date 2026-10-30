@@ -493,6 +493,16 @@ public class Main
         return database;
     }
 
+    public static ArrayList<Error> updateForgettingCurves(ArrayList<Error> database)
+    {
+        for (Error error: database)
+        {
+            error.updateConfidence();
+        }
+
+        return database;
+    }
+
     public static ArrayList<Error> resetMultipliers(ArrayList<Error> database)
     {
         for (Error error: database)
@@ -549,14 +559,15 @@ public class Main
             isFileOpened = false;
         }
 
-        // main command loop
         if (isFileOpened)
         {
+            database = updateForgettingCurves(database);
             buffer = new ArrayList<>(database);
 
             Scanner sc = new Scanner(System.in);
             String command;
 
+            // main command loop
             do
             {
                 System.out.print("\n[cmd]: ");

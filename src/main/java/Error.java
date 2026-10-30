@@ -146,7 +146,7 @@ public class Error
         return totalDecay / totalHours;
     }
 
-    private void updateConfidence()
+    public void updateConfidence()
     {
         double timePassed = calculateHoursPassed(LocalDateTime.parse(reviews.getLast().getDate()), LocalDateTime.now());
         double halfLife = Math.clamp(50.0 / calculateDecayPerHour(), 1.0, 720.0);
