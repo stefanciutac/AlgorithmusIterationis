@@ -49,7 +49,7 @@ public class Main
     {
         for (int i = 0; i < list.size(); i ++)
         {
-            System.out.println("(" + (i + 1) + ")\t" + list.get(i).getTitle() + "\t(" + list.get(i).tags + ")");
+            System.out.println("(" + (i + 1) + ")\t" + list.get(i).getTitle() + "\t(" + list.get(i).getTags() + ")");
         }
     }
 
@@ -64,7 +64,7 @@ public class Main
         {
             for (String tag: tagList)
             {
-                if (error.tags.contains(tag))
+                if (error.getTags().contains(tag))
                 {
                     newList.add(error);
                     break;
@@ -87,7 +87,7 @@ public class Main
             boolean valid = true;
             for (String tag: tagList)
             {
-                if (!error.tags.contains(tag))
+                if (!error.getTags().contains(tag))
                 {
                     valid = false;
                     break;
@@ -531,7 +531,7 @@ public class Main
     {
         ArrayList<Error> database = new ArrayList<>();  // construct using json file parser
         ArrayList<Error> queue = new ArrayList<>();
-        ArrayList<Error> buffer = new ArrayList<>(database);
+        ArrayList<Error> buffer = new ArrayList<>();
 
         // display welcome screen
         displayBanner();
@@ -552,6 +552,8 @@ public class Main
         // main command loop
         if (isFileOpened)
         {
+            buffer = new ArrayList<>(database);
+
             Scanner sc = new Scanner(System.in);
             String command;
 
@@ -628,7 +630,7 @@ public class Main
                 }
                 else if (command.equals("ld"))
                 {
-                    queue = buffer;
+                    queue = new ArrayList<>(buffer);
                 }
                 else if (command.equals("m"))
                 {
@@ -664,7 +666,7 @@ public class Main
                 }
                 else if (command.equals("rst"))
                 {
-                    buffer = database;
+                    buffer = new ArrayList<>(database);
                 }
                 else if (command.equals("rm"))
                 {

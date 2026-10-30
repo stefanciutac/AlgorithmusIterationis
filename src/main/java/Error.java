@@ -14,7 +14,7 @@ public class Error
     private String description = "";
     private String pointer = "";
 
-    String tags;
+    private String tags;
 
     // constructors
     public Error(String t, String d, String p, String tg, int eD)
@@ -31,6 +31,23 @@ public class Error
     {
         dateCreated = LocalDateTime.now().toString();
         tags = dateCreated;
+    }
+
+    public Error(Error error)  // copy constructor
+    {
+        for (Review review: error.getReviews()      )
+        {
+            reviews.add(review);
+        }
+
+        currentConfidence = error.getCurrentConfidence();
+        estimatedDuration = error.getEstimatedDuration();
+        urgencyMultiplier = error.getUrgencyMultiplier();
+        dateCreated = error.getDateCreated();
+        title = error.getTitle();
+        description = error.getDescription();
+        pointer = error.getPointer();
+        tags = error.getTags();
     }
 
     // getters and setters
@@ -50,9 +67,24 @@ public class Error
         return title;
     }
 
+    public String getDateCreated()
+    {
+        return dateCreated;
+    }
+
+    public String getTags()
+    {
+        return tags;
+    }
+
     public String getDescription()
     {
         return description;
+    }
+
+    public ArrayList<Review> getReviews()
+    {
+        return reviews;
     }
 
     public String getPointer()
@@ -73,6 +105,11 @@ public class Error
     public double getUrgencyMultiplier()
     {
         return urgencyMultiplier;
+    }
+
+    public double getCurrentConfidence()
+    {
+        return currentConfidence;
     }
 
     // other methods

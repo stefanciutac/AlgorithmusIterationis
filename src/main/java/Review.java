@@ -13,6 +13,12 @@ public class Review
         date = LocalDateTime.now().toString();
     }
 
+    public Review(Review review)  // copy constructor
+    {
+        date = new String(review.getDate());
+        confidence = review.getConfidence();
+    }
+
     public Review()
     {
         date = LocalDateTime.now().toString();
