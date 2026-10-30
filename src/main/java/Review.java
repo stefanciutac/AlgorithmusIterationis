@@ -3,7 +3,7 @@ import java.time.LocalDateTime;
 public class Review
 {
     // private member variables
-    final private String date;
+    private String date;
     private double confidence;
 
     // constructors

@@ -8,7 +8,7 @@ public class Error
     private double currentConfidence = 50;
     private int estimatedDuration; // in minutes
     private double urgencyMultiplier = 1.0;
-    final private String dateCreated;
+    private String dateCreated;
 
     private String title = "";
     private String description = "";

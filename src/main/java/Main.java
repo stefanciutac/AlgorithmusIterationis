@@ -1,3 +1,9 @@
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
+
+import java.io.*;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -19,23 +25,24 @@ public class Main
     public static void displayCommands()
     {
         System.out.println("[Database Commands]\n" +
-                ":q\tquit program or cancel current review/modification\n" +  // works
-                ":r\treview queue\n" +  // works
-                ":a\tadd error to database\n" +  // works
-                ":h\tdisplay this list\n" +  // works
-                ":ldb\tdisplay the database\n" +  // works
-                "\n[Queue-Buffer]\n" +  // works
-                "lq\tdisplay the queue\n" +  // works
-                "lb\tdisplay the buffer\n" +  // works
-                "fn <tag><tag>...<tag>\tfilter buffer by tag using boolean AND\n" +  // works
-                "fu <tag><tag>...<tag>\tfilter buffer by tag using boolean OR\n" +  // works
-                "\nu\tqueue = (queue) union (buffer)\n" +  // works
-                "n\tqueue = (queue) intersection (buffer)\n" +  // works
-                "ld\toverwrites queue with buffer\n" +  // works
-                "\nm <multiplier><tag><tag>...<tag>\tset the urgency multiplier for given tags\n" +  // untested
-                "gf <review duration>\tuses an algorithm to greedy-filter database\n" +  // works
-                "rm\tremove errors in buffer from database\n" +  // untested
-                "rst\treset buffer to entire database\n");  // works
+                ":q\tquit program or cancel current review/modification\n" +
+                ":w\twrite changes to disk; save\n" +
+                ":r\treview queue\n" +
+                ":a\tadd error to database\n" +
+                ":h\thelp; display this list\n" +
+                "ls\tlist database; display the database\n" +
+                "\n[Queue-Buffer Commands]\n" +
+                "lq\tlist queue; display the queue\n" +
+                "lb\tlist buffer; display the buffer\n" +
+                "fn <tag><tag>...<tag>\tfilter intersection; filter buffer by tag using boolean AND\n" +
+                "fu <tag><tag>...<tag>\tfilter union; filter buffer by tag using boolean OR\n" +
+                "\nu\tqueue = (queue) union (buffer)\n" +
+                "n\tqueue = (queue) intersection (buffer)\n" +
+                "ld\tload; overwrites queue with buffer\n" +
+                "\nm <multiplier>\tmultiply; set the urgency multiplier to items in buffer\n" +
+                "gf <review duration>\tgreedy-fill; uses an algorithm to greedy-filter buffer\n" +
+                "rm\tremove errors in buffer from database\n" +
+                "rst\treset buffer to entire database\n");
     }
 
     public static void displayList(ArrayList<Error> list)
@@ -265,7 +272,20 @@ public class Main
         return review;
     }
 
-    public static ArrayList<Error> reviewQueue(ArrayList<Error> queue, Scanner sc)
+    public static ArrayList<Error> mergeError(Error error, ArrayList<Error> database)
+    {
+        for (Error errorD: database)
+            {
+                if (error.equals(errorD))
+                {
+                    errorD = error;
+                }
+            }
+
+        return database;
+    }
+
+    public static ArrayList<Error> reviewQueue(ArrayList<Error> queue, Scanner sc, ArrayList<Error> database)
     {
         System.out.println("\n[Queue]");
 
@@ -280,6 +300,8 @@ public class Main
             try
             {
                 queue.get(index).addReview(reviewError(queue.get(index), sc));
+                database = mergeError(queue.get(index), database);
+                saveData(database);
             }
             catch (QuitException e)
             {
@@ -290,7 +312,7 @@ public class Main
         }
         System.out.println("[Review session ended]");
 
-        return queue;
+        return database;
     }
 
     public static Error addError() throws QuitException
@@ -427,6 +449,79 @@ public class Main
         return errors;
     }
 
+    public static ArrayList<Error> openFile() throws IOException
+    {
+        ArrayList<Error> database = new ArrayList<>();
+
+        Gson gson = new Gson();
+
+        try
+        {
+            File file = new File("algorithmusIterationisData.json");
+            Scanner fileReader = new Scanner(file);
+
+            String data = "";
+
+            while (fileReader.hasNextLine())
+            {
+                data += fileReader.nextLine() + "\n";
+            }
+
+            try
+            {
+                // typeToken is neccessary because it retains generic type information; gson converts Error to a hashmap otherwise
+                Type typeToken = new TypeToken<ArrayList<Error>>(){}.getType();
+                database = gson.fromJson(data, typeToken);
+                System.out.println("[Database opened successfully]");
+            }
+            catch (JsonSyntaxException e)
+            {
+                throw new JsonSyntaxException("[Could not parse .json file]");
+            }
+        }
+        catch (FileNotFoundException e)
+        {
+            System.out.println("[Exception: File not found.]");
+            throw new IOException();
+        }
+        catch (JsonSyntaxException e)
+        {
+            System.out.println(e.getMessage());
+            throw new IOException();
+        }
+
+        return database;
+    }
+
+    public static ArrayList<Error> resetMultipliers(ArrayList<Error> database)
+    {
+        for (Error error: database)
+        {
+            error.setUrgencyMultiplier(1.0);
+        }
+
+        return database;
+    }
+
+    public static void saveData(ArrayList<Error> database)
+    {
+        Gson gson = new Gson();
+        String db = gson.toJson(resetMultipliers(database));
+
+        try
+        {
+            File data = new File("algorithmusIterationisData.json");
+            FileWriter fileWriter = new FileWriter(data);
+            fileWriter.write(db);
+            fileWriter.close();
+            System.out.println("[File saved successfully.]");
+        }
+        catch (IOException e)
+        {
+            System.out.println("[Exception: Error occurred while saving file.]");
+        }
+    }
+
     public static void quit()
     {
         System.out.println("AlgorithmusIterationis exited.");
@@ -434,7 +529,7 @@ public class Main
 
     public static void main()
     {
-        ArrayList<Error> database = getTestErrors(5);  // construct using json file parser
+        ArrayList<Error> database = new ArrayList<>();  // construct using json file parser
         ArrayList<Error> queue = new ArrayList<>();
         ArrayList<Error> buffer = new ArrayList<>(database);
 
@@ -442,140 +537,160 @@ public class Main
         displayBanner();
         displayCommands();
 
+        // file opening
+        boolean isFileOpened = true;
+
+        try
+        {
+            database = openFile();
+        }
+        catch (IOException e)
+        {
+            isFileOpened = false;
+        }
 
         // main command loop
-        Scanner sc = new Scanner(System.in);
-        String command;
-
-        do
+        if (isFileOpened)
         {
-            System.out.print("\n[cmd]: ");
-            command = sc.next();
+            Scanner sc = new Scanner(System.in);
+            String command;
+
+            do
+            {
+                System.out.print("\n[cmd]: ");
+                command = sc.next();
 
 
-            // check for permanent or program commands
-            if (command.equals(":r"))
-            {
-                queue = reviewQueue(queue, sc);
-            }
-            else if (command.equals(":h"))
-            {
-                displayCommands();
-            }
-            else if (command.equals(":a"))
-            {
-                try
+                // check for permanent or program commands
+                if (command.equals(":r"))
                 {
-                    database.add(addError());
+                    database = reviewQueue(queue, sc, database);
                 }
-                catch (QuitException e)
+                else if (command.equals(":w"))
                 {
-                    System.out.println("[Add error operation cancelled]");
+                    saveData(database);
                 }
-            }
-            else if (command.equals(":q"))
-            {
-                System.out.print("[Exit program? y/N]: ");
-                String choice = sc.next();
-                if (!choice.equals("y"))
+                else if (command.equals(":h"))
                 {
-                    command = "";
+                    displayCommands();
                 }
-            }
-            // check for session commands
-            else if (command.equals("ls"))
-            {
-                displayList(database);
-            }
-            else if (command.equals("lq"))
-            {
-                displayList(queue);
-            }
-            else if (command.equals("lb"))
-            {
-                displayList(buffer);
-            }
-            else if (command.equals("fn"))
-            {
-                ArrayList<String> tagList = pacmanArgs(sc);
-                buffer = filterAnd(buffer, tagList);
-            }
-            else if (command.equals("fu"))
-            {
-                ArrayList<String> tagList = pacmanArgs(sc);
-                buffer = filterOr(buffer, tagList);
-            }
-            else if (command.equals("u"))
-            {
-                queue = listUnion(queue, buffer);
-            }
-            else if (command.equals("n"))
-            {
-                queue = listIntersection(queue, buffer);
-            }
-            else if (command.equals("ld"))
-            {
-                queue = buffer;
-            }
-            else if (command.equals("m"))
-            {
-                double multiplier = 1.0;
-                boolean isValidMultiplier = true;
-
-                try
+                else if (command.equals(":a"))
                 {
-                    multiplier = Double.parseDouble(getNext(sc));
-                }
-                catch (NumberFormatException e)
-                {
-                    System.out.println("Exception: multiplier must be a number");
-                    isValidMultiplier = false;
-                }
-                catch (NullPointerException e)
-                {
-                    System.out.println("Exception: you must pass the arguments <multiplier><tag> to command m");
-                    isValidMultiplier = false;
-                }
-
-                if (isValidMultiplier)
-                {
-                    buffer = applyMultiplier(buffer, multiplier);
-                }
-
-            }
-            else if (command.equals("gf"))
-            {
-                int minutesFree = Integer.parseInt(validateNum(1440, "[Enter review duration/mins]: ", sc));
-
-                buffer = greedyFill(buffer, minutesFree);
-            }
-            else if (command.equals("rst"))
-            {
-                buffer = database;
-            }
-            else if (command.equals("rm"))
-            {
-                for (Error errorB: buffer)
-                {
-                    for (Error errorDB: database)
+                    try
                     {
-                        if (errorB.equals(errorDB))
-                        {
-                            database.remove(errorDB);
-                        }
+                        database.add(addError());
+                        saveData(database);
+                    }
+                    catch (QuitException e)
+                    {
+                        System.out.println("[Add error operation cancelled]");
                     }
                 }
+                else if (command.equals(":q"))
+                {
+                    System.out.print("[Exit program? y/N]: ");
+                    String choice = sc.next();
+                    if (!choice.equals("y"))
+                    {
+                        command = "";
+                    }
+                }
+                // check for session commands
+                else if (command.equals("ls"))
+                {
+                    displayList(database);
+                }
+                else if (command.equals("lq"))
+                {
+                    displayList(queue);
+                }
+                else if (command.equals("lb"))
+                {
+                    displayList(buffer);
+                }
+                else if (command.equals("fn"))
+                {
+                    ArrayList<String> tagList = pacmanArgs(sc);
+                    buffer = filterAnd(buffer, tagList);
+                }
+                else if (command.equals("fu"))
+                {
+                    ArrayList<String> tagList = pacmanArgs(sc);
+                    buffer = filterOr(buffer, tagList);
+                }
+                else if (command.equals("u"))
+                {
+                    queue = listUnion(queue, buffer);
+                }
+                else if (command.equals("n"))
+                {
+                    queue = listIntersection(queue, buffer);
+                }
+                else if (command.equals("ld"))
+                {
+                    queue = buffer;
+                }
+                else if (command.equals("m"))
+                {
+                    double multiplier = 1.0;
+                    boolean isValidMultiplier = true;
 
-                buffer.clear();
-            }
-            else
-            {
-                System.out.println("Invalid command. Type :h to display list of commands.");
-            }
+                    try
+                    {
+                        multiplier = Double.parseDouble(getNext(sc));
+                    }
+                    catch (NumberFormatException e)
+                    {
+                        System.out.println("Exception: multiplier must be a number");
+                        isValidMultiplier = false;
+                    }
+                    catch (NullPointerException e)
+                    {
+                        System.out.println("Exception: you must pass the arguments <multiplier><tag> to command m");
+                        isValidMultiplier = false;
+                    }
 
-        } while (!command.equals(":q"));
+                    if (isValidMultiplier)
+                    {
+                        buffer = applyMultiplier(buffer, multiplier);
+                    }
+
+                }
+                else if (command.equals("gf"))
+                {
+                    int minutesFree = Integer.parseInt(validateNum(1440, "[Enter review duration/mins]: ", sc));
+
+                    buffer = greedyFill(buffer, minutesFree);
+                }
+                else if (command.equals("rst"))
+                {
+                    buffer = database;
+                }
+                else if (command.equals("rm"))
+                {
+                    for (Error errorB: buffer)
+                    {
+                        for (Error errorDB: database)
+                        {
+                            if (errorB.equals(errorDB))
+                            {
+                                database.remove(errorDB);
+                            }
+                        }
+                    }
+
+                    buffer.clear();
+                }
+                else
+                {
+                    System.out.println("Invalid command. Type :h to display list of commands.");
+                }
+
+            } while (!command.equals(":q"));
+        }
 
         // quit the application
+        saveData(database);
         quit();
     }
 }
