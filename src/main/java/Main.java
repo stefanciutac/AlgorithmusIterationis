@@ -614,14 +614,17 @@ public class Main
                 // check for session commands
                 else if (command.equals("ls"))
                 {
+                    System.out.println("[Database]");
                     displayList(database);
                 }
                 else if (command.equals("lq"))
                 {
+                    System.out.println("[Queue]");
                     displayList(queue);
                 }
                 else if (command.equals("lb"))
                 {
+                    System.out.println("[Buffer]");
                     displayList(buffer);
                 }
                 else if (command.equals("fn"))
@@ -637,14 +640,17 @@ public class Main
                 else if (command.equals("u"))
                 {
                     queue = listUnion(queue, buffer);
+                    System.out.println("[Union]");
                 }
                 else if (command.equals("n"))
                 {
                     queue = listIntersection(queue, buffer);
+                    System.out.println("[Intersection]");
                 }
                 else if (command.equals("ld"))
                 {
                     queue = new ArrayList<>(buffer);
+                    System.out.println("[Loaded queue]");
                 }
                 else if (command.equals("m"))
                 {
@@ -676,11 +682,13 @@ public class Main
                 {
                     int minutesFree = Integer.parseInt(validateNum(0, 1440, "[Enter review duration/mins]: ", sc));
 
+                    System.out.println("[Greedy-filled buffer]");
                     buffer = greedyFill(buffer, minutesFree);
                 }
                 else if (command.equals("rst"))
                 {
                     buffer = new ArrayList<>(database);
+                    System.out.println("[Reset buffer]");
                 }
                 else if (command.equals("rm"))
                 {
@@ -691,6 +699,7 @@ public class Main
                             if (errorB.equals(errorDB))
                             {
                                 database.remove(errorDB);
+                                System.out.println("[" + errorDB.getTitle() + " removed]");
                             }
                         }
                     }
