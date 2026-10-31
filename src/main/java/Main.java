@@ -39,6 +39,7 @@ public class Main
                 ":backup <path>\tcreate a backup of the database\n" +
                 ":r\treview queue\n" +
                 ":a\tadd error to database\n" +
+                ":rf\trefresh confidence scores\n" +
                 ":h\thelp; display this list\n" +
                 "ls\tlist database; display the database\n" +
                 "cl\tclear the console\n" +
@@ -694,6 +695,11 @@ public class Main
                 else if (command.equals(":h"))
                 {
                     displayCommands();
+                }
+                else if (command.equals(":rf"))
+                {
+                    database = updateForgettingCurves(database);
+                    System.out.println("[Forgetting curves refreshed.]");
                 }
                 else if (command.equals(":a"))
                 {
