@@ -314,7 +314,7 @@ public class Main
 
         displayList(queue);
 
-        String choice = validateNum(0, queue.size(), "\n[Enter no. of item to review]: ", sc);
+        String choice = validateNum(1, queue.size(), "\n[Enter no. of item to review]: ", sc);
 
         while (!choice.equals(":q"))
         {
@@ -331,7 +331,7 @@ public class Main
                 System.out.println("[Review cancelled]");
             }
 
-            choice = validateNum(0, queue.size(), "[Enter no. of item to review]: ", sc);
+            choice = validateNum(1, queue.size(), "[Enter no. of item to review]: ", sc);
         }
         System.out.println("[Review session ended]");
 
