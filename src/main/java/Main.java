@@ -60,8 +60,16 @@ public class Main
     {
         for (int i = 0; i < list.size(); i ++)
         {
-            System.out.println("(" + (i + 1) + ")\t" + list.get(i).getTitle() + "\t(" + list.get(i).getTags() + ")\t[r=" +
+            System.out.print("(" + (i + 1) + ")\t" + list.get(i).getTitle() + "\t(" + list.get(i).getTags() + ")\t[r=" +
                     list.get(i).returnNewConfidence() + "]");
+            if (list.get(i).getUrgencyMultiplier() > 1.000001 || list.get(i).getUrgencyMultiplier() < 0.999999)
+            {
+                System.out.print("\t*urg=" + list.get(i).getUrgencyMultiplier() + "\n");
+            }
+            else
+            {
+                System.out.println();
+            }
         }
     }
 
@@ -140,7 +148,7 @@ public class Main
         }
         catch (NoSuchElementException e)
         {
-            System.out.println("Exception: sc.next() is being called on an empty buffer");
+            System.out.println("[Exception: sc.next() is being called on an empty buffer.]");
         }
         return "";
     }
@@ -233,7 +241,7 @@ public class Main
             }
             catch (NumberFormatException e)
             {
-                System.out.println("Exception: Must be an integer value.");
+                System.out.println("[Exception: Must be an integer value.]");
                 choice = validateNum(min, max, message, sc);
             }
 
@@ -243,12 +251,12 @@ public class Main
 
                 if (index > max)
                 {
-                    System.out.println("Exception: Must not exceed " + max + ".");
+                    System.out.println("[Exception: Must not exceed " + max + ".]");
                     choice = validateNum(min, max, message, sc);
                 }
                 else if (index < min)
                 {
-                    System.out.println("Exception: Must not be less than " + min + ".");
+                    System.out.println("[Exception: Must not be less than " + min + ".]");
                     choice = validateNum(min, max, message, sc);
                 }
             }
@@ -506,11 +514,11 @@ public class Main
                 // typeToken is neccessary because it retains generic type information; gson converts Error to a hashmap otherwise
                 Type typeToken = new TypeToken<ArrayList<Error>>(){}.getType();
                 database = gson.fromJson(data, typeToken);
-                System.out.println("[Database opened successfully]");
+                System.out.println("[Database opened successfully.]");
             }
             catch (JsonSyntaxException e)
             {
-                throw new JsonSyntaxException("[Could not parse .json file]");
+                throw new JsonSyntaxException("[Could not parse .json file.]");
             }
         }
         catch (FileNotFoundException e)
@@ -557,7 +565,7 @@ public class Main
             }
             else
             {
-                System.out.println("[" + errorDB.getTitle() + " removed]");
+                System.out.println("[" + errorDB.getTitle() + " removed.]");
             }
         }
         return modifiedList;
@@ -618,7 +626,7 @@ public class Main
 
     public static void quit()
     {
-        System.out.println("AlgorithmusIterationis exited.");
+        System.out.println("[AlgorithmusIterationis exited.]");
     }
 
     public static void main()
@@ -629,7 +637,7 @@ public class Main
 
         // display welcome screen
         displayBanner();
-        displayCommands();
+        System.out.println("[Enter :h to view commands.]\n");
 
         // file opening
         boolean isFileOpened = true;
