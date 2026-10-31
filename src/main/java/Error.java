@@ -171,6 +171,13 @@ public class Error
         return currentConfidence * Math.pow(0.5, (timePassed / halfLife));
     }
 
+    public double returnTheoreticalConfidence(double timePassed)
+    {
+        double halfLife = Math.clamp(50.0 / calculateDecayPerHour(), 1.0, 720.0);
+
+        return currentConfidence * Math.pow(0.5, (timePassed / halfLife));
+    }
+
     // error objects are considered equal if they were created at the same time
     public boolean equals(Error error)
     {
