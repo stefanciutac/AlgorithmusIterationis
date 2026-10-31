@@ -60,7 +60,8 @@ public class Main
     {
         for (int i = 0; i < list.size(); i ++)
         {
-            System.out.println("(" + (i + 1) + ")\t" + list.get(i).getTitle() + "\t(" + list.get(i).getTags() + ")");
+            System.out.println("(" + (i + 1) + ")\t" + list.get(i).getTitle() + "\t(" + list.get(i).getTags() + ")\t[r=" +
+                    list.get(i).returnNewConfidence() + "]");
         }
     }
 
