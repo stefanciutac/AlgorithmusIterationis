@@ -16,8 +16,10 @@ public class Error
 
     private String tags;
 
+    private boolean appearsInGreedyFill = true;
+
     // constructors
-    public Error(String t, String d, String p, String tg, int eD)
+    public Error(String t, String d, String p, String tg, int eD, boolean a)
     {
         title = t;
         description = d;
@@ -25,6 +27,7 @@ public class Error
         estimatedDuration = eD;
         dateCreated = LocalDateTime.now().toString();
         tags = dateCreated + ", " + tg;
+        appearsInGreedyFill = a;
     }
 
     public Error()
@@ -48,6 +51,7 @@ public class Error
         description = error.getDescription();
         pointer = error.getPointer();
         tags = error.getTags();
+        appearsInGreedyFill = error.getVisibilityStatus();
     }
 
     // getters and setters
@@ -110,6 +114,11 @@ public class Error
     public double getCurrentConfidence()
     {
         return currentConfidence;
+    }
+
+    public boolean getVisibilityStatus()
+    {
+        return appearsInGreedyFill;
     }
 
     // other methods

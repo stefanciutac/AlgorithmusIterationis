@@ -391,8 +391,26 @@ public class Main
             throw new QuitException();
         }
 
+        // get appearsInGreedyFillInput
+        System.out.print("[Appears in greedy-fill? Y/n]: ");
+        String appearsInGreedyFillInput = sc.nextLine();
+        boolean appearsInGreedyFill;
+
+        if (appearsInGreedyFillInput.equals(":q"))
+        {
+            throw new QuitException();
+        }
+        else if (appearsInGreedyFillInput.equals("n"))
+        {
+            appearsInGreedyFill = false;
+        }
+        else
+        {
+            appearsInGreedyFill = true;
+        }
+
         // construct and return new Error object
-        Error error = new Error(title, description, pointer, tags, estimatedDuration);
+        Error error = new Error(title, description, pointer, tags, estimatedDuration, appearsInGreedyFill);
         error.addReview(review);
         return error;
     }
@@ -422,21 +440,22 @@ public class Main
 
         for (Error error: buffer)
         {
-            if (maxTime < 1)
+            if (error.getVisibilityStatus())
             {
-                break;
-            }
-            else if (error.getEstimatedDuration() <= maxTime)
-            {
-                queue.add(error);
-                maxTime -= error.getEstimatedDuration();
+                if (maxTime < 1) {
+                    break;
+                }
+                else if (error.getEstimatedDuration() <= maxTime) {
+                    queue.add(error);
+                    maxTime -= error.getEstimatedDuration();
+                }
             }
         }
 
         return queue;
     }
 
-    // temporary: for testing purposes
+    // for testing purposes
     public static ArrayList<Error> getTestErrors(int count)
     {
         ArrayList<Error> errors = new ArrayList<>();
@@ -454,7 +473,7 @@ public class Main
             }
             tags += "t" + i;
 
-            Error error = new Error(title, description, pointer, tags, estimatedDuration);
+            Error error = new Error(title, description, pointer, tags, estimatedDuration, true);
             error.addReview(new Review(count - i));
 
             errors.add(error);
