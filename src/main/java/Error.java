@@ -158,24 +158,24 @@ public class Error
     public void updateConfidence()
     {
         double timePassed = calculateHoursPassed(LocalDateTime.parse(reviews.getLast().getDate()), LocalDateTime.now());
-        double halfLife = Math.clamp(50.0 / calculateDecayPerHour(), 1.0, 720.0);
+        double halfLife = Math.clamp(50.0 / calculateDecayPerHour(), 0.1, 720.0);
 
-        currentConfidence = currentConfidence * Math.pow(0.5, (timePassed / halfLife));
+        currentConfidence = reviews.getLast().getConfidence() * Math.pow(0.5, (timePassed / halfLife));
     }
 
     public double returnNewConfidence()
     {
         double timePassed = calculateHoursPassed(LocalDateTime.parse(reviews.getLast().getDate()), LocalDateTime.now());
-        double halfLife = Math.clamp(50.0 / calculateDecayPerHour(), 1.0, 720.0);
+        double halfLife = Math.clamp(50.0 / calculateDecayPerHour(), 0.1, 720.0);
 
-        return currentConfidence * Math.pow(0.5, (timePassed / halfLife));
+        return reviews.getLast().getConfidence() * Math.pow(0.5, (timePassed / halfLife));
     }
 
     public double returnTheoreticalConfidence(double timePassed)
     {
-        double halfLife = Math.clamp(50.0 / calculateDecayPerHour(), 1.0, 720.0);
+        double halfLife = Math.clamp(50.0 / calculateDecayPerHour(), 0.1, 720.0);
 
-        return currentConfidence * Math.pow(0.5, (timePassed / halfLife));
+        return reviews.getLast().getConfidence() * Math.pow(0.5, (timePassed / halfLife));
     }
 
     // error objects are considered equal if they were created at the same time
