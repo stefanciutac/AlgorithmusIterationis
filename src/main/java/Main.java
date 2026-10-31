@@ -265,6 +265,24 @@ public class Main
         return choice;
     }
 
+    public static ArrayList<Error> insertionSort(ArrayList<Error> list)
+    {
+        for (int i = 1; i < list.size(); i ++)
+        {
+            int newIndex = i;
+            while (newIndex > 0 && list.get(newIndex).calculateScore() > list.get(newIndex - 1).calculateScore())
+            {
+                // swap elements
+                Error tmp = list.get(newIndex);
+                list.set(newIndex, list.get(newIndex - 1));
+                list.set(newIndex - 1, tmp);
+                newIndex --;
+            }
+        }
+
+        return list;
+    }
+
     public static Review reviewError(Error error, Scanner sc) throws QuitException
     {
         Review review = new Review();
@@ -331,6 +349,9 @@ public class Main
                 System.out.println("[Review cancelled]");
             }
 
+            System.out.println("\n[Queue]");
+            queue = insertionSort(queue);
+            displayList(queue);
             choice = validateNum(1, queue.size(), "[Enter no. of item to review]: ", sc);
         }
         System.out.println("[Review session ended]");
@@ -422,24 +443,6 @@ public class Main
         Error error = new Error(title, description, pointer, tags, estimatedDuration, appearsInGreedyFill);
         error.addReview(review);
         return error;
-    }
-
-    public static ArrayList<Error> insertionSort(ArrayList<Error> list)
-    {
-        for (int i = 1; i < list.size(); i ++)
-        {
-            int newIndex = i;
-            while (newIndex > 0 && list.get(newIndex).calculateScore() > list.get(newIndex - 1).calculateScore())
-            {
-                // swap elements
-                Error tmp = list.get(newIndex);
-                list.set(newIndex, list.get(newIndex - 1));
-                list.set(newIndex - 1, tmp);
-                newIndex --;
-            }
-        }
-
-        return list;
     }
 
     public static ArrayList<Error> greedyFill(ArrayList<Error> buffer, int maxTime)
@@ -666,6 +669,11 @@ public class Main
                 command = sc.next();
 
 
+                // update order
+                database = insertionSort(database);
+                buffer = insertionSort(buffer);
+                queue = insertionSort(queue);
+
                 // check for permanent or program commands
                 if (command.equals(":r"))
                 {
@@ -760,12 +768,12 @@ public class Main
                     }
                     catch (NumberFormatException e)
                     {
-                        System.out.println("Exception: multiplier must be a number");
+                        System.out.println("[Exception: multiplier must be a number]");
                         isValidMultiplier = false;
                     }
                     catch (NullPointerException e)
                     {
-                        System.out.println("Exception: you must pass the arguments <multiplier><tag> to command m");
+                        System.out.println("[Exception: you must pass the arguments <multiplier><tag> to command m]");
                         isValidMultiplier = false;
                     }
 
@@ -773,7 +781,6 @@ public class Main
                     {
                         buffer = applyMultiplier(buffer, multiplier);
                     }
-
                 }
                 else if (command.equals("gf"))
                 {
@@ -794,7 +801,7 @@ public class Main
                 }
                 else
                 {
-                    System.out.println("Invalid command. Type :h to display list of commands.");
+                    System.out.println("[Invalid command. Type :h to display list of commands.]");
                 }
 
             } while (!command.equals(":q"));
