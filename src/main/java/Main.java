@@ -36,7 +36,8 @@ public class Main
         System.out.println("[Database and UI Commands]\n" +
                 ":q\tquit program or cancel current review/modification\n" +
                 ":w\twrite changes to disk; save\n" +
-                ":backup <path>\tcreate a backup of the database\n" +
+                ":backup <path>\tcreate a backup of the database with verbatim path" +
+                ":backup config\tcreate a backup of the database at path set in config.json\n" +
                 ":r\treview queue\n" +
                 ":a\tadd error to database\n" +
                 ":rf\trefresh confidence scores\n" +
@@ -604,6 +605,48 @@ public class Main
         }
     }
 
+    public static Config parseConfig() throws IOException
+    {
+        Config config = new Config();
+
+        Gson gson = new Gson();
+
+        try
+        {
+            File file = new File("config.json");
+            Scanner fileReader = new Scanner(file);
+
+            String data = "";
+
+            while (fileReader.hasNextLine())
+            {
+                data += fileReader.nextLine() + "\n";
+            }
+
+            try
+            {
+                Type typeToken = new TypeToken<Config>(){}.getType();
+                config = gson.fromJson(data, typeToken);
+            }
+            catch (JsonSyntaxException e)
+            {
+                throw new JsonSyntaxException("[Could not parse config.json file.]");
+            }
+        }
+        catch (FileNotFoundException e)
+        {
+            System.out.println("[Exception: Config file not found.]");
+            throw new IOException();
+        }
+        catch (JsonSyntaxException e)
+        {
+            System.out.println(e.getMessage());
+            throw new IOException();
+        }
+
+        return config;
+    }
+
     public static void createBackup(ArrayList<Error> database, Scanner sc)
     {
         Gson gson = new Gson();
@@ -611,11 +654,26 @@ public class Main
 
         String path = getNext(sc);
 
-        if (!path.equals(":q"))
+        if (!path.equals(":q") && !path.equals("config"))
         {
             try
             {
                 File data = new File(path + "/" + LocalDateTime.now().toString() + "_AlgorithmusBackup.json");
+                FileWriter fileWriter = new FileWriter(data);
+                fileWriter.write(db);
+                fileWriter.close();
+                System.out.println("[Backup saved successfully.]");
+            }
+            catch (IOException e)
+            {
+                System.out.println("[Exception: Error occurred while saving file.]");
+            }
+        }
+        else if (path.equals("config"))
+        {
+            try
+            {
+                File data = new File(parseConfig().getBackupPath() + "/" + LocalDateTime.now().toString() + "_AlgorithmusBackup.json");
                 FileWriter fileWriter = new FileWriter(data);
                 fileWriter.write(db);
                 fileWriter.close();
