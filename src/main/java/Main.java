@@ -4,6 +4,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.*;
 import java.lang.reflect.Type;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -22,15 +23,25 @@ public class Main
                 "                 ▀▀                                                                                                                                       ");
     }
 
+    public static void clearScreen()
+    {
+        for (int i = 0; i < 25; i ++)
+        {
+            System.out.println("\n");
+        }
+    }
+
     public static void displayCommands()
     {
-        System.out.println("[Database Commands]\n" +
+        System.out.println("[Database and UI Commands]\n" +
                 ":q\tquit program or cancel current review/modification\n" +
                 ":w\twrite changes to disk; save\n" +
+                ":backup <path>\tcreate a backup of the database\n" +
                 ":r\treview queue\n" +
                 ":a\tadd error to database\n" +
                 ":h\thelp; display this list\n" +
                 "ls\tlist database; display the database\n" +
+                "cl\tclear the console\n" +
                 "\n[Queue-Buffer Commands]\n" +
                 "lq\tlist queue; display the queue\n" +
                 "lb\tlist buffer; display the buffer\n" +
@@ -561,6 +572,30 @@ public class Main
         }
     }
 
+    public static void createBackup(ArrayList<Error> database, Scanner sc)
+    {
+        Gson gson = new Gson();
+        String db = gson.toJson(resetMultipliers(database));
+
+        String path = getNext(sc);
+
+        if (!path.equals(":q"))
+        {
+            try
+            {
+                File data = new File(path + "/" + LocalDateTime.now().toString() + "_AlgorithmusBackup.json");
+                FileWriter fileWriter = new FileWriter(data);
+                fileWriter.write(db);
+                fileWriter.close();
+                System.out.println("[Backup saved successfully.]");
+            }
+            catch (IOException e)
+            {
+                System.out.println("[Exception: Error occurred while saving file.]");
+            }
+        }
+    }
+
     public static void quit()
     {
         System.out.println("AlgorithmusIterationis exited.");
@@ -611,6 +646,14 @@ public class Main
                 else if (command.equals(":w"))
                 {
                     saveData(database);
+                }
+                else if (command.equals(":backup"))
+                {
+                    createBackup(database, sc);
+                }
+                else if (command.equals("cl"))
+                {
+                    clearScreen();
                 }
                 else if (command.equals(":h"))
                 {
